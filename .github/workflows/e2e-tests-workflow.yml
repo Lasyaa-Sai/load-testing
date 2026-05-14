@@ -2,9 +2,9 @@ name: E2E Voice & Text Testing
 #Workflow to run tests with Maestro
 on:
   push:
-    branches: [ main, develop, master ]
+    branches: [ main, develop, master,Maestro-test ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master,Maestro-test]
 
 jobs:
   e2e-tests:
