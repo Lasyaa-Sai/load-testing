@@ -89,15 +89,14 @@ jobs:
             -scheme VoiceTextDemo \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,id=${{ steps.select-sim.outputs.SIM_UDID }}" \
             -derivedDataPath build
 
       - name: Install app on simulator
         working-directory: sample_testing/e2e-voice-text-harness/App
         run: |
-          APP_PATH=build/Build/Products/Debug-iphonesimulator/VoiceTextDemo.app
+          APP_PATH=$(find build -name VoiceTextDemo.app -type d | head -n 1)
           if [ ! -d "$APP_PATH" ]; then
-            echo "Unable to find built app bundle at $APP_PATH"
+            echo "Unable to find built app bundle"
             find build -maxdepth 6 2>/dev/null | sed -n '1,200p'
             exit 1
           fi

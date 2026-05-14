@@ -169,6 +169,7 @@
 				PRODUCT_NAME = VoiceTextDemo;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos iphonesimulator;
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -195,6 +196,7 @@
 				PRODUCT_NAME = VoiceTextDemo;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos iphonesimulator;
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
