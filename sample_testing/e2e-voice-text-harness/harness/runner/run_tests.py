@@ -27,7 +27,9 @@ APP_BUNDLE_ID = os.environ.get("APP_BUNDLE_ID", "com.example.VoiceTextDemo")
 SIMULATOR = os.environ.get("IOS_SIMULATOR", "iPhone 16")
 SIMULATOR_UDID = os.environ.get("IOS_SIMULATOR_UDID", "")
 TMP_DIR = Path("/tmp/harness_outputs")
-MAX_RETRIES = 2
+MAX_RETRIES = int(os.environ.get("MAX_RETRIES", "1"))
+MAESTRO_TIMEOUT_S = int(os.environ.get("MAESTRO_TIMEOUT_S", "120"))
+CASE_OUTPUT_TIMEOUT_S = int(os.environ.get("CASE_OUTPUT_TIMEOUT_S", "15"))
 
 
 def main():
@@ -91,6 +93,8 @@ def run_case(case_def: dict) -> dict:
     output_path = str(TMP_DIR / f"{case_def['id']}_{run_id}")
     start = time.time()
 
+    print(f"    ▶ Running {case_def['id']} ({case_def.get('type', 'text')})")
+
     env = {
         **os.environ,
         "CASE_TYPE": case_def.get("type", "text"),
@@ -121,14 +125,16 @@ def run_case(case_def: dict) -> dict:
     duration_ms = int((time.time() - start) * 1000)
 
     if maestro_result["returncode"] != 0:
+        maestro_output = maestro_result.get("stdout") or maestro_result.get("stderr") or ""
+        tail = maestro_output[-1000:].strip()
         return {
             "case_id": case_def["id"],
             "passed": False,
-            "fail_reason": f"Maestro failed: {maestro_result['stderr'][-500:]}",
+            "fail_reason": f"Maestro failed: {tail}",
             "duration_ms": duration_ms,
         }
 
-    output_file = wait_for_file(Path(output_path + ".json"), timeout=30)
+    output_file = wait_for_file(Path(output_path + ".json"), timeout=CASE_OUTPUT_TIMEOUT_S)
     if output_file is None:
         return {
             "case_id": case_def["id"],
@@ -201,7 +207,7 @@ def run_maestro(case_def: dict, env: dict) -> dict:
         cmd,
         env=maestro_env,
         cwd=str(REPO_ROOT),
-        timeout=300,
+        timeout=MAESTRO_TIMEOUT_S,
     )
 
 
@@ -243,7 +249,7 @@ def run_command_streaming(cmd: list[str], env: dict, cwd: str, timeout: int) -> 
     return {
         "returncode": process.returncode or 0,
         "stdout": "".join(output_lines),
-        "stderr": "",
+        "stderr": "".join(output_lines),
     }
 
 

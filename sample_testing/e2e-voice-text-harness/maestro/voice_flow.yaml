@@ -5,6 +5,7 @@
 appId: ${APP_ID}
 ---
 - launchApp:
+    clearState: true
     arguments:
       CASE_TYPE: ${CASE_TYPE}
       CASE_OUTPUT_PATH: ${CASE_OUTPUT_PATH}
@@ -13,6 +14,8 @@ appId: ${APP_ID}
       OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL}
       OPENROUTER_MODEL: ${OPENROUTER_MODEL}
       REGRESSION_BREAK_TOOL_CALL: ${REGRESSION_BREAK_TOOL_CALL}
+- waitForAnimationToEnd:
+    timeout: 5000
 - assertVisible:
     id: voice_button
 - tapOn:

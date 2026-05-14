@@ -7,14 +7,15 @@
 appId: ${APP_ID}
 ---
 - launchApp:
+    clearState: true
     arguments:
       CASE_TYPE: ${CASE_TYPE}
       CASE_OUTPUT_PATH: ${CASE_OUTPUT_PATH}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL}
       OPENROUTER_MODEL: ${OPENROUTER_MODEL}
-- assertVisible:
-    id: text_input_field
+- waitForAnimationToEnd:
+    timeout: 5000
 - tapOn:
     id: text_input_field
 - inputText: ${CASE_INPUT_TEXT}
