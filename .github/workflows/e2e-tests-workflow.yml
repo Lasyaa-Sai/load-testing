@@ -90,28 +90,107 @@ jobs:
             -destination "platform=iOS Simulator,id=${{ steps.select-sim.outputs.SIM_UDID }}" \
             -derivedDataPath build
 
+          xcodebuild \
+            -scheme VoiceTextDemo \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,id=${{ steps.select-sim.outputs.SIM_UDID }}" \
+            -derivedDataPath build \
+            -showBuildSettings > build-settings.txt
+
       - name: Install app on simulator
         working-directory: sample_testing/e2e-voice-text-harness/App
         run: |
-          APP_PATH=$(find build -name VoiceTextDemo.app -type d | head -n 1)
-          if [ -n "$APP_PATH" ]; then
+          APP_PATH=$(python - <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          def parse_settings(path: Path) -> dict[str, str]:
+              settings = {}
+              if not path.exists():
+                  return settings
+              for line in path.read_text().splitlines():
+                  match = re.match(r"\s*([A-Za-z0-9_]+)\s*=\s*(.*)", line)
+                  if match:
+                      settings[match.group(1)] = match.group(2).strip()
+              return settings
+
+          def unique_candidates(paths):
+              seen = set()
+              for path in paths:
+                  if path is None:
+                      continue
+                  path = Path(path)
+                  if path in seen:
+                      continue
+                  seen.add(path)
+                  yield path
+
+          settings = parse_settings(Path("build-settings.txt"))
+          search_roots = [
+              Path(settings.get("TARGET_BUILD_DIR", "")),
+              Path(settings.get("BUILT_PRODUCTS_DIR", "")),
+              Path("build"),
+              Path(".build"),
+              Path.home() / "Library/Developer/Xcode/DerivedData",
+          ]
+
+          preferred = []
+          wrapper_name = settings.get("WRAPPER_NAME")
+          executable_path = settings.get("EXECUTABLE_PATH")
+          executable_name = settings.get("EXECUTABLE_NAME", "VoiceTextDemo")
+          if search_roots[0].exists() and wrapper_name:
+              preferred.append(search_roots[0] / wrapper_name)
+          if search_roots[1].exists() and wrapper_name:
+              preferred.append(search_roots[1] / wrapper_name)
+          if search_roots[0].exists() and executable_path:
+              preferred.append(search_roots[0] / executable_path)
+          if search_roots[1].exists() and executable_path:
+              preferred.append(search_roots[1] / executable_path)
+          if search_roots[0].exists():
+              preferred.append(search_roots[0] / executable_name)
+          if search_roots[1].exists():
+              preferred.append(search_roots[1] / executable_name)
+
+          for candidate in unique_candidates(preferred):
+              if candidate.is_dir() and candidate.name.endswith(".app"):
+                  print(candidate)
+                  sys.exit(0)
+              if candidate.is_file():
+                  print(candidate)
+                  sys.exit(0)
+
+          for root in search_roots[2:]:
+              if not root.exists():
+                  continue
+              for candidate in root.rglob("VoiceTextDemo.app"):
+                  if candidate.is_dir():
+                      print(candidate)
+                      sys.exit(0)
+              for candidate in root.rglob("VoiceTextDemo"):
+                  if candidate.is_file():
+                      print(candidate)
+                      sys.exit(0)
+          PY
+          )
+
+          if [ -z "$APP_PATH" ]; then
+            echo "Unable to find built app bundle or executable"
+            find build .build "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 5 2>/dev/null | sed -n '1,200p'
+            exit 1
+          fi
+
+          if [ -d "$APP_PATH" ] && [[ "$APP_PATH" == *.app ]]; then
             xcrun simctl install "${{ steps.select-sim.outputs.SIM_UDID }}" "$APP_PATH"
             exit 0
           fi
 
-          EXECUTABLE_PATH=$(find build -type f -name VoiceTextDemo | head -n 1)
-          if [ -z "$EXECUTABLE_PATH" ]; then
-            echo "Unable to find built app bundle or executable"
-            find build -maxdepth 5 | sed -n '1,120p'
-            exit 1
-          fi
-
-          APP_PATH=build/VoiceTextDemo.app
-          rm -rf "$APP_PATH"
-          mkdir -p "$APP_PATH"
-          cp "$EXECUTABLE_PATH" "$APP_PATH/VoiceTextDemo"
-          chmod +x "$APP_PATH/VoiceTextDemo"
-          cat > "$APP_PATH/Info.plist" <<'PLIST'
+          APP_BUNDLE=build/VoiceTextDemo.app
+          rm -rf "$APP_BUNDLE"
+          mkdir -p "$APP_BUNDLE"
+          cp "$APP_PATH" "$APP_BUNDLE/VoiceTextDemo"
+          chmod +x "$APP_BUNDLE/VoiceTextDemo"
+          cat > "$APP_BUNDLE/Info.plist" <<'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -128,10 +207,12 @@ jobs:
             <string>1.0</string>
             <key>CFBundleVersion</key>
             <string>1</string>
+            <key>LSRequiresIPhoneOS</key>
+            <true/>
           </dict>
           </plist>
           PLIST
-          xcrun simctl install "${{ steps.select-sim.outputs.SIM_UDID }}" "$APP_PATH"
+          xcrun simctl install "${{ steps.select-sim.outputs.SIM_UDID }}" "$APP_BUNDLE"
 
       - name: Run Tests
         working-directory: sample_testing/e2e-voice-text-harness

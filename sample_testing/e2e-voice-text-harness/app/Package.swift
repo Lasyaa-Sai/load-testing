@@ -5,13 +5,12 @@ let package = Package(
     name: "VoiceTextDemo",
     platforms: [.iOS(.v17)],
     products: [
-        .library(name: "VoiceTextDemo", targets: ["VoiceTextDemo"])
+        .executable(name: "VoiceTextDemo", targets: ["VoiceTextDemo"])
     ],
     targets: [
-        .target(
+        .executableTarget(
             name: "VoiceTextDemo",
-            path: "Sources/VoiceTextDemo",
-            resources: [.process("Resources")]
+            path: "Sources/VoiceTextDemo"
         ),
         .testTarget(
             name: "AudioBridgeTests",
