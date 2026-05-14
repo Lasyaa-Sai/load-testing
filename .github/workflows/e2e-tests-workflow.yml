@@ -1,5 +1,5 @@
 name: E2E Voice & Text Testing
-#Workflow to run tests Test 1
+#Workflow to run tests with Maestro
 on:
   push:
     branches: [ main, develop, master ]
