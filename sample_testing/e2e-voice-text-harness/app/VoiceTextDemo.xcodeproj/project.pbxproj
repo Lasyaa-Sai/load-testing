@@ -168,7 +168,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.VoiceTextDemo;
 				PRODUCT_NAME = VoiceTextDemo;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = iphoneos iphonesimulator;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -195,7 +195,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.VoiceTextDemo;
 				PRODUCT_NAME = VoiceTextDemo;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = iphoneos iphonesimulator;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
