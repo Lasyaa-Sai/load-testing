@@ -107,3 +107,4 @@ __init__.py
 
 transition_docs/
 docs_runbooks/
+*.md
